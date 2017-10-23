@@ -6,6 +6,8 @@ var {User} = require('./models/user');
 var {events} = require('./models/events');
 var {Message} = require('./models/message');
 
+const port = process.env.PORT || 3000;
+
 var app = express();
 app.use(bodyParser.json());
 app.post('/newuser', (req, res) => {
@@ -125,8 +127,8 @@ app.post('/messages',(req,res) => {
       }
     });
 });
-app.listen(3000,()=>{
-  console.log('Express listening on 3000 port');
+app.listen(port,()=>{
+  console.log(`Express listening on ${port} port`);
 });
 
 module.exports={app};
