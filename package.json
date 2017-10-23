@@ -7,13 +7,14 @@
     "start": "node server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "engines":{
+  "engines": {
     "node": "8.1.4"
   },
   "author": "Varun Srinivasan",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "crypto-js": "^3.1.9-1",
     "express": "^4.16.2",
     "mongodb": "^2.2.31",
     "mongoose": "^4.12.1"
