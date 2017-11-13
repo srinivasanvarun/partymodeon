@@ -10,6 +10,8 @@ const port = process.env.PORT || 3000;
 
 var app = express();
 app.use(bodyParser.json());
+
+// Creating new user
 app.post('/newuser', (req, res) => {
   var newUser = new User({
     _id: req.body.userid,
@@ -27,6 +29,20 @@ app.post('/newuser', (req, res) => {
     res.status(400).send({"message": "Unable to save user data"});
   });
 });
+
+// Getting user details
+app.get('/userdetail', (req, res) => {
+  var query = User.find({_id:req.query.id},'firstName lastName');
+  query.exec((err,doc) => {
+    if(!err){
+      res.send(doc);
+    }else{
+      res.send(err);
+    }
+  });
+});
+
+// Getting all users
 app.get('/users', (req, res) => {
   var query = User.find({},'_id firstName lastName');
   query.exec((err,doc) => {
@@ -37,6 +53,56 @@ app.get('/users', (req, res) => {
     }
   });
 });
+
+// Getting events created by a user
+app.get('/upcomingselfevents', (req, res) => {
+  if (req.query.id != null) {
+    var query = events.find({organizer:req.query.id},'eventName eventDate');
+    query.exec((err,doc) => {
+      if(!err){
+        res.send(doc);
+      }else{
+        res.send(err);
+      }
+    });
+  } else {
+    res.send({"message": "Need id parameter"});
+  }
+});
+
+// Getting accepted events to be attended by a user
+app.get('/upcomingacceptedevents', (req, res) => {
+  if (req.query.id != null) {
+    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:true}}},'eventName eventDate');
+    query.exec((err,doc) => {
+      if(!err){
+        res.send(doc);
+      }else{
+        res.send(err);
+      }
+    });
+  } else {
+    res.send({"message": "Need id parameter"});
+  }
+});
+
+// Getting unaccepted events to be attended by a user
+app.get('/upcomingunacceptedevents', (req, res) => {
+  if (req.query.id != null) {
+    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:false}}},'eventName eventDate');
+    query.exec((err,doc) => {
+      if(!err){
+        res.send(doc);
+      }else{
+        res.send(err);
+      }
+    });
+  } else {
+    res.send({"message": "Need id parameter"});
+  }
+});
+
+// Check user credentials
 app.post('/checkuser',(req,res) => {
   User.findById({
     _id: req.body.userid
@@ -45,12 +111,14 @@ app.post('/checkuser',(req,res) => {
       res.send({"message":"User not found"});
     }
     if(doc.password === SHA256(req.body.password + "partymodeon").toString()){
-      res.send({"message":"Successful"});
+      res.send({"message":"Success"});
     }else{
       res.send({"message":"Incorrect user ID or password"});
     }
   });
 });
+
+// Create new event
 app.post('/newevent',(req,res) => {
   var newEvent = new events({
     eventName: req.body.name,
@@ -65,11 +133,13 @@ app.post('/newevent',(req,res) => {
     newEvent.attendees.push({userid:req.body.attendees[i],numOfGuests:0,accepted:false});
   }
   newEvent.save().then(() => {
-    res.status(200).send({"message":"Event created successfully!"});
+    res.status(200).send({"message":"Success"});
   },(err)=>{
     res.status(400).send({"message":"Something's not right! Failed to save."});
   });
 });
+
+// Accept an event invitation
 app.post('/eventaccept',(req,res) => {
   events.findOneAndUpdate(
     {'attendees.userid':req.body.attendees.userid},
@@ -78,11 +148,13 @@ app.post('/eventaccept',(req,res) => {
       'attendees.$.accepted':true
     }},(err,doc) => {
       if(!err){
-        res.status(200).send({"message":"Event successfully accepted"});
+        res.status(200).send({"message":"Success"});
       }else{
       res.status(400).send({"message":"Something's not right! Failed to save."});
     }});
 });
+
+// Create/add a new message
 app.post('/createmessage',(req,res) => {
   Message.findOne(
     {'eventName':req.body.name,
@@ -94,7 +166,7 @@ app.post('/createmessage',(req,res) => {
           time: new Date().toString(),
           sender:req.body.sender});
         doc.save().then(() => {
-            res.send({"message":"Message sent successfully!"});
+            res.send({"message":"Success"});
           },(err)=> {
             res.send({"message":"Message not sent. Try again later"});
           });
@@ -108,13 +180,15 @@ app.post('/createmessage',(req,res) => {
              time: new Date().toString(),
              sender:req.body.sender});
           msg.save().then(() => {
-            res.send({"message":"Message sent successfully!"});
+            res.send({"message":"Success"});
           },(err)=> {
             res.send({"message":"Message not sent. Try again later"});
           });
       }
     });
 });
+
+// Get messages for an event
 app.post('/messages',(req,res) => {
   Message.findOne(
     {'eventName':req.body.name,
@@ -127,6 +201,7 @@ app.post('/messages',(req,res) => {
       }
     });
 });
+
 app.listen(port,()=>{
   console.log(`Express listening on ${port} port`);
 });
