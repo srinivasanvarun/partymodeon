@@ -30,6 +30,20 @@ app.post('/newuser', (req, res) => {
   });
 });
 
+// Creating new user
+app.post('/edituser', (req, res) => {
+  jso = JSON.parse(JSON.stringify(req.body));
+  console.log(jso);
+  User.findOneAndUpdate(
+    {_id:req.body.userid},
+    {'$set':jso},(err,doc) => {
+      if(!err){
+        res.status(200).send({"message":"Success"});
+      }else{
+      res.status(400).send({"message":"Something's not right! Failed to save."});
+    }});
+});
+
 // Getting user details
 app.get('/userdetail', (req, res) => {
   var query = User.find({_id:req.query.id},'firstName lastName');
@@ -116,6 +130,19 @@ app.post('/checkuser',(req,res) => {
       res.send({"message":"Incorrect user ID or password"});
     }
   });
+});
+
+// Changing password
+app.post('/changepassword',(req,res) => {
+  p = SHA256(req.body.password + "partymodeon").toString();
+  User.findOneAndUpdate(
+    {_id:req.body.userid},
+    {'$set':{password: p}},(err,doc) => {
+      if(!err){
+        res.status(200).send({"message":"Success"});
+      }else{
+      res.status(400).send({"message":"Something's not right! Failed to save."});
+    }});
 });
 
 // Create new event
