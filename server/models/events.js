@@ -5,7 +5,7 @@ var events = mongoose.model('Events',{
     type: String
   },
   eventDate:{
-    type: Date
+    type: String
   },
   creationDate:{
     type: Date

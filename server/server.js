@@ -36,7 +36,7 @@ app.post('/edituser', (req, res) => {
   console.log(jso);
   User.findOneAndUpdate(
     {_id:req.body.userid},
-    {'$set':jso},(err,doc) => {
+    {'$set':resjso},(err,doc) => {
       if(!err){
         res.status(200).send({"message":"Success"});
       }else{
@@ -71,7 +71,7 @@ app.get('/users', (req, res) => {
 // Getting events created by a user
 app.get('/upcomingselfevents', (req, res) => {
   if (req.query.id != null) {
-    var query = events.find({organizer:req.query.id},'eventName eventDate');
+    var query = events.find({organizer:req.query.id});
     query.exec((err,doc) => {
       if(!err){
         res.send(doc);
@@ -87,7 +87,7 @@ app.get('/upcomingselfevents', (req, res) => {
 // Getting accepted events to be attended by a user
 app.get('/upcomingacceptedevents', (req, res) => {
   if (req.query.id != null) {
-    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:true}}},'eventName eventDate');
+    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:true}}});
     query.exec((err,doc) => {
       if(!err){
         res.send(doc);
@@ -103,7 +103,7 @@ app.get('/upcomingacceptedevents', (req, res) => {
 // Getting unaccepted events to be attended by a user
 app.get('/upcomingunacceptedevents', (req, res) => {
   if (req.query.id != null) {
-    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:false}}},'eventName eventDate');
+    var query = events.find({attendees:{$elemMatch: {userid:req.query.id,accepted:false}}});
     query.exec((err,doc) => {
       if(!err){
         res.send(doc);
@@ -166,12 +166,34 @@ app.post('/newevent',(req,res) => {
   });
 });
 
+// Edit event
+app.post('/editevent', (req, res) => {
+  jso = JSON.parse(JSON.stringify(req.body));
+  console.log(jso);
+  var resjson = jso;
+  delete resjson.oldeventName;
+  delete resjson.oldeventDate;
+  events.findOneAndUpdate(
+    {eventName:req.body.oldeventName,
+    eventDate:req.body.oldeventDate},
+    {'$set':jso},(err,doc) => {
+      if(!err){
+        res.status(200).send({"message":"Success"});
+      }else{
+      res.status(400).send({"message":"Something's not right! Failed to save."});
+    }});
+});
+
 // Accept an event invitation
 app.post('/eventaccept',(req,res) => {
+  jso = JSON.parse(JSON.stringify(req.body));
+  console.log(jso);
   events.findOneAndUpdate(
-    {'attendees.userid':req.body.attendees.userid},
+    {eventName:req.body.name,
+      eventDate:req.body.date,
+      'attendees.userid':req.body.userid},
     {'$set':{
-      'attendees.$.numOfGuests':req.body.attendees.numOfGuests,
+      'attendees.$.numOfGuests':req.body.numOfGuests,
       'attendees.$.accepted':true
     }},(err,doc) => {
       if(!err){
