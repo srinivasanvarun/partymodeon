@@ -32,11 +32,11 @@ app.post('/newuser', (req, res) => {
 
 // Creating new user
 app.post('/edituser', (req, res) => {
-  jso = JSON.parse(JSON.stringify(req.body));
+  var jso = JSON.parse(JSON.stringify(req.body));
   console.log(jso);
   User.findOneAndUpdate(
     {_id:req.body.userid},
-    {'$set':resjso},(err,doc) => {
+    {'$set':jso},(err,doc) => {
       if(!err){
         res.status(200).send({"message":"Success"});
       }else{
@@ -168,7 +168,7 @@ app.post('/newevent',(req,res) => {
 
 // Edit event
 app.post('/editevent', (req, res) => {
-  jso = JSON.parse(JSON.stringify(req.body));
+  var jso = JSON.parse(JSON.stringify(req.body));
   console.log(jso);
   var resjson = jso;
   delete resjson.oldeventName;
